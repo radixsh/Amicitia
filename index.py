@@ -46,34 +46,38 @@ async def get_help(ctx):
 @client.command(aliases=['list'])
 async def list_all_roles(ctx,*args):
     ALL_ROLES = {}
+
+    #populate ALL_ROLES
     for m in ctx.guild.members:
-        name_to_use = f'Name: `{m.name}#{m.discriminator}`' 
-        if m.nick:
-            name_to_use += f'(or {m.nick})'
-        
         for role in m.roles:
             if role.name != "@everyone":
                 if ALL_ROLES.__contains__(role.name):
-                    ALL_ROLES[role.name].append(f'{m.name}#{m.discriminator}')
+                    ALL_ROLES[role.name].append(f'`{m.name}#{m.discriminator}`')
                 else:
-                    ALL_ROLES[role.name] = [f'{m.name}#{m.discriminator}']
+                    ALL_ROLES[role.name] = [f'`{m.name}#{m.discriminator}`']
     
-    to_return = ""
     for role in ALL_ROLES:
-        if len(to_return) < 1000:
-            to_return += f'**{role}**: {", ".join(ALL_ROLES[role])}\n'
-        else:
-            await ctx.send(to_return)
-            to_return = ""
-    return await ctx.send(to_return)
+        long_list = f'**{role}**: {", ".join(ALL_ROLES[role])}\n'
+        if len(long_list) < 2000:
+            await ctx.send(long_list)
+        else: 
+            parts = []
+            for i in range(0, len(long_list), 1000):
+                parts.append(long_list[i:i+1000])
+            if len(parts) > 3:
+                await ctx.send(f'(**{role}** has too many people in it to list)')
+            else:
+                for part in parts:
+                    await ctx.send(part)
+    return
 
 
 @client.command(aliases=['find'])
 async def find_people_with_role(ctx,*,role): 
-    ALL_ROLES = []
+    real_roles = []
     for real_role in ctx.guild.roles:
-        ALL_ROLES.append(real_role.name)
-    if role not in ALL_ROLES:
+        real_roles.append(real_role.name)
+    if role not in real_roles:
         return await ctx.send("That role does not exist!")
     
     people_in_role = []
@@ -81,21 +85,23 @@ async def find_people_with_role(ctx,*,role):
         member_specific_roles = []
         for r in m.roles:
             member_specific_roles.append(r.name)
-
         if role in member_specific_roles: 
             people_in_role.append(f'`{m.name}#{m.discriminator}`')
     
     if not people_in_role:
-        to_return = f'No one with that role!'
-    else:
-        to_return = f'People with role `{role}`: \n'
-        for person in people_in_role:
-            if len(to_return) < 1000:
-                to_return += f'{person}\n'
-            else:
-                await ctx.send(to_return)
-                to_return = ""
-    return await ctx.send(to_return)
+        return await ctx.send(f'No one with that role!')
+    
+    long_list = f'People with role `{role}`:\n'
+    for person in people_in_role:
+        long_list += f'{person}\n'
+    parts = []
+    for i in range(0, len(long_list)-1, 1900):
+        temp = long_list[i:i+1900].rindex("\n")
+        try:
+            await ctx.send(long_list[i:temp])
+        except:
+            print(f'Failed to ctx.send: {long_list[i:temp]}')
+    return
 
 
 client.run(TOKEN)
