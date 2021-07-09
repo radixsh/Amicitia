@@ -28,6 +28,21 @@ async def ping(ctx):
     await ctx.send(f'Pong! {round(client.latency*1000)} ms :)')
 
 
+#help
+@client.command(aliases=['h'])
+async def get_help(ctx):
+    embed = discord.Embed(title="Help", description=f'Prefix: `{client.command_prefix}`', color=0xb2558d)
+    embed.add_field(name=f"`{client.command_prefix}ping` (aka `p`)", 
+            value="Performs a ping to see if the bot is up.", inline=False)
+    embed.add_field(name=f'`{client.command_prefix}list`', 
+            value="Lists each role and everyone in them.", inline=False)
+    embed.add_field(name=f'`{client.command_prefix}find foo`',
+            value="Prints a list of everyone with role `foo`.", inline=False)
+    embed.set_footer(text="Contact @radix#4520 with issues.")
+    await ctx.send(embed=embed)
+
+
+
 @client.command(aliases=['list'])
 async def list_all_roles(ctx,*args):
     ALL_ROLES = {}
@@ -39,13 +54,13 @@ async def list_all_roles(ctx,*args):
         for role in m.roles:
             if role.name != "@everyone":
                 if ALL_ROLES.__contains__(role.name):
-                    ALL_ROLES[role.name].append(name_to_use)
+                    ALL_ROLES[role.name].append(f'{m.name}#{m.discriminator}')
                 else:
-                    ALL_ROLES[role.name] = [name_to_use]
+                    ALL_ROLES[role.name] = [f'{m.name}#{m.discriminator}']
     
     to_return = ""
     for role in ALL_ROLES:
-        to_return += f'{role}: {ALL_ROLES[role.name]}\n'
+        to_return += f'**{role}**: {", ".join(ALL_ROLES[role])}\n'
     return await ctx.send(to_return)
 
 
