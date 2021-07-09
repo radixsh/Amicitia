@@ -60,12 +60,16 @@ async def list_all_roles(ctx,*args):
     
     to_return = ""
     for role in ALL_ROLES:
-        to_return += f'**{role}**: {", ".join(ALL_ROLES[role])}\n'
+        if len(to_return) < 1000:
+            to_return += f'**{role}**: {", ".join(ALL_ROLES[role])}\n'
+        else:
+            await ctx.send(to_return)
+            to_return = ""
     return await ctx.send(to_return)
 
 
 @client.command(aliases=['find'])
-async def find_fellow(ctx,*,role): 
+async def find_people_with_role(ctx,*,role): 
     ALL_ROLES = []
     for real_role in ctx.guild.roles:
         ALL_ROLES.append(real_role.name)
@@ -86,7 +90,11 @@ async def find_fellow(ctx,*,role):
     else:
         to_return = f'People with role `{role}`: \n'
         for person in people_in_role:
-            to_return += f'{person}\n'
+            if len(to_return) < 1000:
+                to_return += f'{person}\n'
+            else:
+                await ctx.send(to_return)
+                to_return = ""
     return await ctx.send(to_return)
 
 
